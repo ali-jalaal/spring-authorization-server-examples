@@ -36,7 +36,7 @@ subprojects {
     useJUnitPlatform()
   }
 
-  tasks.register("bootRunLocal") {
+  tasks.register("bootLocalRun") {
     group = "application"
     doFirst {
       tasks.bootRun.configure {
