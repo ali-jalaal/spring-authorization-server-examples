@@ -39,6 +39,7 @@ import java.util.UUID
 
 @Configuration
 @EnableWebSecurity
+// @Import(OAuth2AuthorizationServerConfiguration::class) // Use this annotation for minimal OAuth2 configuration (authorizationServerSecurityFilterChain()')
 class SecurityConfig {
   @Bean
   @Order(1)
@@ -129,6 +130,7 @@ class SecurityConfig {
 
   @Bean
   fun authorizationServerSettings(): AuthorizationServerSettings {
+    // This is also accessible via: AuthorizationServerContextHolder.getContext().authorizationServerSettings
     return AuthorizationServerSettings.builder().build()
   }
 
