@@ -1,5 +1,7 @@
 package com.github.alijalaal.authserver.config
 
+import com.github.alijalaal.authserver.authentication.DeviceClientAuthenticationProvider
+import com.github.alijalaal.authserver.web.authentication.DeviceClientAuthenticationConverter
 import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jose.jwk.RSAKey
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet
@@ -18,8 +20,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configurers.ExceptionHandlingConfigurer
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer
-import org.springframework.security.core.userdetails.User
-import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.oauth2.core.AuthorizationGrantType
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod
 import org.springframework.security.oauth2.core.oidc.OidcScopes
@@ -33,7 +33,6 @@ import org.springframework.security.oauth2.server.authorization.config.annotatio
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.*
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings
-import org.springframework.security.provisioning.InMemoryUserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher
@@ -55,18 +54,39 @@ class AuthorizationServerConfig {
                                              authorizationServerSettings: AuthorizationServerSettings): SecurityFilterChain {
     OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http)
 
-    http.getConfigurer(OAuth2AuthorizationServerConfigurer::class.java)
 
+    /*
+		 * This sample demonstrates the use of a public client that does not
+		 * store credentials or authenticate with the authorization server.
+		 *
+		 * The following components show how to customize the authorization
+		 * server to allow for device clients to perform requests to the
+		 * OAuth 2.0 Device Authorization Endpoint and Token Endpoint without
+		 * a clientId/clientSecret.
+		 *
+		 * CAUTION: These endpoints will not require any authentication, and can
+		 * be accessed by any client that has a valid clientId.
+		 *
+		 * It is therefore RECOMMENDED to carefully monitor the use of these
+		 * endpoints and employ any additional protections as needed, which is
+		 * outside the scope of this sample.
+		 */
+    val deviceClientAuthenticationConverter: DeviceClientAuthenticationConverter =
+      DeviceClientAuthenticationConverter(
+        authorizationServerSettings.deviceAuthorizationEndpoint
+      )
+    val deviceClientAuthenticationProvider: DeviceClientAuthenticationProvider =
+      DeviceClientAuthenticationProvider(registeredClientRepository)
+
+    http.getConfigurer(OAuth2AuthorizationServerConfigurer::class.java)
     // @formatter:off
     http.getConfigurer<OAuth2AuthorizationServerConfigurer>(OAuth2AuthorizationServerConfigurer::class.java)
-/*
       .deviceAuthorizationEndpoint{deviceAuthorizationEndpoint:OAuth2DeviceAuthorizationEndpointConfigurer -> deviceAuthorizationEndpoint.verificationUri("/activate")}
       .deviceVerificationEndpoint{deviceVerificationEndpoint:OAuth2DeviceVerificationEndpointConfigurer -> deviceVerificationEndpoint.consentPage(AuthorizationServerConfig.CUSTOM_CONSENT_PAGE_URI)}
       .clientAuthentication{clientAuthentication:OAuth2ClientAuthenticationConfigurer -> clientAuthentication
         .authenticationConverter(deviceClientAuthenticationConverter)
         .authenticationProvider(deviceClientAuthenticationProvider)}
       .authorizationEndpoint{authorizationEndpoint:OAuth2AuthorizationEndpointConfigurer -> authorizationEndpoint.consentPage(AuthorizationServerConfig.CUSTOM_CONSENT_PAGE_URI)}
-*/
       .oidc(Customizer.withDefaults<OidcConfigurer>()) // Enable OpenID Connect 1.0
 
 
@@ -114,21 +134,6 @@ class AuthorizationServerConfig {
 
   @Bean
   fun registeredClientRepository(jdbcTemplate: JdbcTemplate): RegisteredClientRepository {
-//    val oidcClient = RegisteredClient.withId(UUID.randomUUID().toString())
-//      .clientId("oidc-client")
-//      .clientSecret("{noop}secret")
-//      .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-//      .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-//      .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-//      .redirectUri("http://127.0.0.1:8080/login/oauth2/code/oidc-client")
-//      .postLogoutRedirectUri("http://127.0.0.1:8080/")
-//      .scope(OidcScopes.OPENID)
-//      .scope(OidcScopes.PROFILE)
-//      .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
-//      .build()
-//
-//    return InMemoryRegisteredClientRepository(oidcClient)
-
     val registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
       .clientId("messaging-client")
       .clientSecret("{noop}secret")
@@ -146,19 +151,19 @@ class AuthorizationServerConfig {
       .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
       .build()
 
-//    val deviceClient = RegisteredClient.withId(UUID.randomUUID().toString())
-//      .clientId("device-messaging-client")
-//      .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
-//      .authorizationGrantType(AuthorizationGrantType.DEVICE_CODE)
-//      .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-//      .scope("message.read")
-//      .scope("message.write")
-//      .build()
+    val deviceClient = RegisteredClient.withId(UUID.randomUUID().toString())
+      .clientId("device-messaging-client")
+      .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
+      .authorizationGrantType(AuthorizationGrantType.DEVICE_CODE)
+      .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+      .scope("message.read")
+      .scope("message.write")
+      .build()
 
     // Save registered client's in db as if in-memory
     val registeredClientRepository = JdbcRegisteredClientRepository(jdbcTemplate)
     registeredClientRepository.save(registeredClient)
-//    registeredClientRepository.save(deviceClient)
+    registeredClientRepository.save(deviceClient)
     return registeredClientRepository
   }
 
