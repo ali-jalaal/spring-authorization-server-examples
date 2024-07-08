@@ -27,11 +27,6 @@ import java.util.function.Consumer
 
 import org.assertj.core.api.Assertions.assertThat
 
-/**
- * Consent screen integration tests for the sample Authorization Server.
- *
- * @author Dmitriy Dubson
- */
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc

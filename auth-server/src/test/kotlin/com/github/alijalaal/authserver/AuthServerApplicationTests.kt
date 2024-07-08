@@ -8,6 +8,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlElement
 import com.gargoylesoftware.htmlunit.html.HtmlInput
 import com.gargoylesoftware.htmlunit.html.HtmlPage
 import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -19,13 +20,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.web.util.UriComponentsBuilder
 import java.io.IOException
 
-import org.assertj.core.api.Assertions.assertThat
-
-/**
- * Integration tests for the sample Authorization Server.
- *
- * @author Daniel Garnier-Moiroux
- */
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -83,7 +77,7 @@ class AuthServerApplicationTests {
 
     // Request token
     val response: WebResponse =
-      webClient!!.getPage(AUTHORIZATION_REQUEST).getWebResponse()
+      webClient!!.getPage<Page>(AUTHORIZATION_REQUEST).getWebResponse()
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.MOVED_PERMANENTLY.value())
     val location: String = response.getResponseHeaderValue("location")

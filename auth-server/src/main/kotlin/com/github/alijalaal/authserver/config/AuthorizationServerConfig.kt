@@ -2,9 +2,11 @@ package com.github.alijalaal.authserver.config
 
 import com.github.alijalaal.authserver.authentication.DeviceClientAuthenticationProvider
 import com.github.alijalaal.authserver.web.authentication.DeviceClientAuthenticationConverter
+import com.github.alijalaal.client.federation.FederatedIdentityIdTokenCustomizer
+import com.github.alijalaal.client.jose.Jwks
+import com.nimbusds.jose.jwk.JWKSelector
 import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jose.jwk.RSAKey
-import com.nimbusds.jose.jwk.source.ImmutableJWKSet
 import com.nimbusds.jose.jwk.source.JWKSource
 import com.nimbusds.jose.proc.SecurityContext
 import org.springframework.context.annotation.Bean
@@ -18,8 +20,6 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType
 import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
-import org.springframework.security.config.annotation.web.configurers.ExceptionHandlingConfigurer
-import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer
 import org.springframework.security.oauth2.core.AuthorizationGrantType
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod
 import org.springframework.security.oauth2.core.oidc.OidcScopes
@@ -33,13 +33,13 @@ import org.springframework.security.oauth2.server.authorization.config.annotatio
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.*
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings
+import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher
 import java.security.KeyPair
 import java.security.KeyPairGenerator
-import java.security.interfaces.RSAPrivateKey
-import java.security.interfaces.RSAPublicKey
 import java.util.*
 
 @Configuration
@@ -50,8 +50,10 @@ class AuthorizationServerConfig {
   @Bean
   @Order(1)
   @Throws(Exception::class)
-  fun authorizationServerSecurityFilterChain(http: HttpSecurity, registeredClientRepository: RegisteredClientRepository,
-                                             authorizationServerSettings: AuthorizationServerSettings): SecurityFilterChain {
+  fun authorizationServerSecurityFilterChain(
+    http: HttpSecurity, registeredClientRepository: RegisteredClientRepository,
+    authorizationServerSettings: AuthorizationServerSettings
+  ): SecurityFilterChain {
     OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http)
 
 
@@ -71,28 +73,29 @@ class AuthorizationServerConfig {
 		 * endpoints and employ any additional protections as needed, which is
 		 * outside the scope of this sample.
 		 */
-    val deviceClientAuthenticationConverter: DeviceClientAuthenticationConverter =
+    val deviceClientAuthenticationConverter =
       DeviceClientAuthenticationConverter(
         authorizationServerSettings.deviceAuthorizationEndpoint
       )
-    val deviceClientAuthenticationProvider: DeviceClientAuthenticationProvider =
+    val deviceClientAuthenticationProvider =
       DeviceClientAuthenticationProvider(registeredClientRepository)
 
     http.getConfigurer(OAuth2AuthorizationServerConfigurer::class.java)
     // @formatter:off
-    http.getConfigurer<OAuth2AuthorizationServerConfigurer>(OAuth2AuthorizationServerConfigurer::class.java)
+    http.getConfigurer(OAuth2AuthorizationServerConfigurer::class.java)
       .deviceAuthorizationEndpoint{deviceAuthorizationEndpoint:OAuth2DeviceAuthorizationEndpointConfigurer -> deviceAuthorizationEndpoint.verificationUri("/activate")}
-      .deviceVerificationEndpoint{deviceVerificationEndpoint:OAuth2DeviceVerificationEndpointConfigurer -> deviceVerificationEndpoint.consentPage(AuthorizationServerConfig.CUSTOM_CONSENT_PAGE_URI)}
+      .deviceVerificationEndpoint{deviceVerificationEndpoint:OAuth2DeviceVerificationEndpointConfigurer -> deviceVerificationEndpoint.consentPage(CUSTOM_CONSENT_PAGE_URI)}
       .clientAuthentication{clientAuthentication:OAuth2ClientAuthenticationConfigurer -> clientAuthentication
         .authenticationConverter(deviceClientAuthenticationConverter)
         .authenticationProvider(deviceClientAuthenticationProvider)}
-      .authorizationEndpoint{authorizationEndpoint:OAuth2AuthorizationEndpointConfigurer -> authorizationEndpoint.consentPage(AuthorizationServerConfig.CUSTOM_CONSENT_PAGE_URI)}
-      .oidc(Customizer.withDefaults<OidcConfigurer>()) // Enable OpenID Connect 1.0
+      .authorizationEndpoint{authorizationEndpoint:OAuth2AuthorizationEndpointConfigurer -> authorizationEndpoint.consentPage(CUSTOM_CONSENT_PAGE_URI)}
+      .oidc(Customizer.withDefaults()) // Enable OpenID Connect 1.0
+    // @formatter:on
 
-
+    // @formatter:off
     // Redirect to the login page when not authenticated from the authorization endpoint
     http
-      .exceptionHandling { exceptions: ExceptionHandlingConfigurer<HttpSecurity?> ->
+      .exceptionHandling { exceptions ->
         exceptions
           .defaultAuthenticationEntryPointFor(
             LoginUrlAuthenticationEntryPoint("/login"),
@@ -100,38 +103,15 @@ class AuthorizationServerConfig {
           )
       }
       // Accept access tokens for User Info and/or Client Registration
-      .oauth2ResourceServer { resourceServer: OAuth2ResourceServerConfigurer<HttpSecurity?> ->
-        resourceServer
+      .oauth2ResourceServer { oauth2ResourceServer ->
+        oauth2ResourceServer
           .jwt(Customizer.withDefaults())
       }
 
     return http.build()
   }
 
-/*
-  @Bean
-  fun webSecurityCustomizer(): WebSecurityCustomizer {
-    return WebSecurityCustomizer { web -> web.ignoring().requestMatchers("/error") }
-  }
-*/
-
-  @Bean
-  fun authorizationService(
-    jdbcTemplate: JdbcTemplate?,
-    registeredClientRepository: RegisteredClientRepository?
-  ): JdbcOAuth2AuthorizationService {
-    return JdbcOAuth2AuthorizationService(jdbcTemplate, registeredClientRepository)
-  }
-
-  @Bean
-  fun authorizationConsentService(
-    jdbcTemplate: JdbcTemplate?,
-    registeredClientRepository: RegisteredClientRepository?
-  ): JdbcOAuth2AuthorizationConsentService {
-    // Will be used by the ConsentController
-    return JdbcOAuth2AuthorizationConsentService(jdbcTemplate, registeredClientRepository)
-  }
-
+  // @formatter:off
   @Bean
   fun registeredClientRepository(jdbcTemplate: JdbcTemplate): RegisteredClientRepository {
     val registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
@@ -166,6 +146,51 @@ class AuthorizationServerConfig {
     registeredClientRepository.save(deviceClient)
     return registeredClientRepository
   }
+  // @formatter:on
+
+  @Bean
+  fun authorizationService(
+    jdbcTemplate: JdbcTemplate?,
+    registeredClientRepository: RegisteredClientRepository?
+  ): JdbcOAuth2AuthorizationService {
+    return JdbcOAuth2AuthorizationService(jdbcTemplate, registeredClientRepository)
+  }
+
+  @Bean
+  fun authorizationConsentService(
+    jdbcTemplate: JdbcTemplate?,
+    registeredClientRepository: RegisteredClientRepository?
+  ): JdbcOAuth2AuthorizationConsentService {
+    // Will be used by the ConsentController
+    return JdbcOAuth2AuthorizationConsentService(jdbcTemplate, registeredClientRepository)
+  }
+
+  @Bean
+  fun idTokenCustomizer(): OAuth2TokenCustomizer<JwtEncodingContext?> {
+    return FederatedIdentityIdTokenCustomizer()
+  }
+
+  @Bean
+  fun jwkSource(): JWKSource<SecurityContext> {
+    val rsaKey: RSAKey = Jwks.generateRsa()
+    val jwkSet = JWKSet(rsaKey)
+    return JWKSource { jwkSelector: JWKSelector, securityContext: SecurityContext? ->
+      jwkSelector.select(
+        jwkSet
+      )
+    }
+  }
+
+  @Bean
+  fun jwtDecoder(jwkSource: JWKSource<SecurityContext?>?): JwtDecoder {
+    return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource)
+  }
+
+  @Bean
+  fun authorizationServerSettings(): AuthorizationServerSettings {
+    // This is also accessible via: AuthorizationServerContextHolder.getContext().authorizationServerSettings
+    return AuthorizationServerSettings.builder().build()
+  }
 
   @Bean
   fun embeddedDatabase(): EmbeddedDatabase {
@@ -179,30 +204,6 @@ class AuthorizationServerConfig {
       .addScript("org/springframework/security/oauth2/server/authorization/client/oauth2-registered-client-schema.sql")
       .build()
     // @formatter:on
-  }
-
-  @Bean
-  fun jwkSource(): JWKSource<SecurityContext> {
-    val keyPair: KeyPair = generateRsaKey()
-    val publicKey = keyPair.public as RSAPublicKey
-    val privateKey = keyPair.private as RSAPrivateKey
-    val rsaKey = RSAKey.Builder(publicKey)
-      .privateKey(privateKey)
-      .keyID(UUID.randomUUID().toString())
-      .build()
-    val jwkSet = JWKSet(rsaKey)
-    return ImmutableJWKSet(jwkSet)
-  }
-
-  @Bean
-  fun jwtDecoder(jwkSource: JWKSource<SecurityContext?>?): JwtDecoder {
-    return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource)
-  }
-
-  @Bean
-  fun authorizationServerSettings(): AuthorizationServerSettings {
-    // This is also accessible via: AuthorizationServerContextHolder.getContext().authorizationServerSettings
-    return AuthorizationServerSettings.builder().build()
   }
 
   companion object {
