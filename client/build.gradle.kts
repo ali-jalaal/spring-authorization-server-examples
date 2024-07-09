@@ -17,6 +17,7 @@ dependencies {
   implementation("org.webjars:popper.js:2.9.3")
   implementation("org.webjars:jquery:3.6.4")
 
+  compileOnly("org.springframework.boot:spring-boot-devtools")
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("org.jetbrains.kotlin:kotlin-reflect")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
