@@ -9,4 +9,9 @@ class LoginController {
   fun login(): String {
     return "login"
   }
+
+  @GetMapping("/")
+  fun index(): String {
+    return "index"
+  }
 }
