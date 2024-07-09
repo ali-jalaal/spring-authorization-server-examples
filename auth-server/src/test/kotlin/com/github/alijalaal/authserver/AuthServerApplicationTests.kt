@@ -7,7 +7,6 @@ import com.gargoylesoftware.htmlunit.html.HtmlButton
 import com.gargoylesoftware.htmlunit.html.HtmlElement
 import com.gargoylesoftware.htmlunit.html.HtmlInput
 import com.gargoylesoftware.htmlunit.html.HtmlPage
-import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -25,32 +24,32 @@ import java.io.IOException
 @AutoConfigureMockMvc
 class AuthServerApplicationTests {
   @Autowired
-  private val webClient: WebClient? = null
+  private lateinit var webClient: WebClient
 
   @BeforeEach
   fun setUp() {
-    webClient!!.getOptions().setThrowExceptionOnFailingStatusCode(true)
-    webClient!!.getOptions().setRedirectEnabled(true)
-    webClient!!.getCookieManager().clearCookies() // log out
+    webClient.options.isThrowExceptionOnFailingStatusCode = true
+    webClient.options.isRedirectEnabled = true
+    webClient.cookieManager.clearCookies() // log out
   }
 
   @Test
   @Throws(IOException::class)
   fun whenLoginSuccessfulThenDisplayBadRequestError() {
-    val page: HtmlPage = webClient!!.getPage("/")
+    val page: HtmlPage = webClient.getPage("/")
 
     assertLoginPage(page)
 
-    webClient!!.getOptions().setThrowExceptionOnFailingStatusCode(false)
+    webClient.options.isThrowExceptionOnFailingStatusCode = false
     val signInResponse: WebResponse = signIn<Page>(page, "user1", "password").getWebResponse()
 
-    assertThat(signInResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value()) // there is no "default" index page
+    assertThat(signInResponse.statusCode).isEqualTo(HttpStatus.OK.value()) // index page
   }
 
   @Test
   @Throws(IOException::class)
   fun whenLoginFailsThenDisplayBadCredentials() {
-    val page: HtmlPage = webClient!!.getPage("/")
+    val page: HtmlPage = webClient.getPage("/")
 
     val loginErrorPage: HtmlPage = signIn(page, "user1", "wrong-password")
 
@@ -62,7 +61,7 @@ class AuthServerApplicationTests {
   @Test
   @Throws(IOException::class)
   fun whenNotLoggedInAndRequestingTokenThenRedirectsToLogin() {
-    val page: HtmlPage = webClient!!.getPage(AUTHORIZATION_REQUEST)
+    val page: HtmlPage = webClient.getPage(AUTHORIZATION_REQUEST)
 
     assertLoginPage(page)
   }
@@ -71,18 +70,18 @@ class AuthServerApplicationTests {
   @Throws(IOException::class)
   fun whenLoggingInAndRequestingTokenThenRedirectsToClientApplication() {
     // Log in
-    webClient!!.getOptions().setThrowExceptionOnFailingStatusCode(false)
-    webClient!!.getOptions().setRedirectEnabled(false)
-    signIn<Page>(webClient!!.getPage("/login"), "user1", "password")
+    webClient.options.isThrowExceptionOnFailingStatusCode = false
+    webClient.options.isRedirectEnabled = false
+    signIn<Page>(webClient.getPage("/login"), "user1", "password")
 
     // Request token
     val response: WebResponse =
-      webClient!!.getPage<Page>(AUTHORIZATION_REQUEST).getWebResponse()
+      webClient.getPage<Page>(AUTHORIZATION_REQUEST).webResponse
 
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.MOVED_PERMANENTLY.value())
+    assertThat(response.statusCode).isEqualTo(HttpStatus.MOVED_PERMANENTLY.value())
     val location: String = response.getResponseHeaderValue("location")
-    Assertions.assertThat(location).startsWith(REDIRECT_URI)
-    Assertions.assertThat(location).contains("code=")
+    assertThat(location).startsWith(REDIRECT_URI)
+    assertThat(location).contains("code=")
   }
 
   companion object {
@@ -109,7 +108,7 @@ class AuthServerApplicationTests {
     }
 
     private fun assertLoginPage(page: HtmlPage) {
-      assertThat(page.getUrl().toString()).endsWith("/login")
+      assertThat(page.url.toString()).endsWith("/login")
 
       val usernameInput: HtmlInput = page.querySelector("input[name=\"username\"]")
       val passwordInput: HtmlInput = page.querySelector("input[name=\"password\"]")
@@ -117,7 +116,7 @@ class AuthServerApplicationTests {
 
       assertThat(usernameInput).isNotNull()
       assertThat(passwordInput).isNotNull()
-      assertThat(signInButton.getTextContent()).isEqualTo("Sign in")
+      assertThat(signInButton.textContent).isEqualTo("Sign in")
     }
   }
 }
