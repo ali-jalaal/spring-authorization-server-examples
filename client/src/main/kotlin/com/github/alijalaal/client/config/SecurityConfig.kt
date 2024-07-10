@@ -24,8 +24,9 @@ class SecurityConfig {
   }
 
   // @formatter:off
-  @Bean @Throws(Exception::class) fun securityFilterChain(http:HttpSecurity,
-                                                          clientRegistrationRepository:ClientRegistrationRepository): SecurityFilterChain {
+  @Bean
+  @Throws(Exception::class)
+  fun securityFilterChain(http:HttpSecurity, clientRegistrationRepository:ClientRegistrationRepository): SecurityFilterChain {
     http
       .authorizeHttpRequests(Customizer {authorize -> authorize
         .requestMatchers("/logged-out").permitAll()
@@ -38,11 +39,8 @@ class SecurityConfig {
   }
 
   // @formatter:on
-  private fun oidcLogoutSuccessHandler(
-    clientRegistrationRepository: ClientRegistrationRepository
-  ): LogoutSuccessHandler {
-    val oidcLogoutSuccessHandler =
-      OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository)
+  private fun oidcLogoutSuccessHandler(clientRegistrationRepository: ClientRegistrationRepository): LogoutSuccessHandler {
+    val oidcLogoutSuccessHandler = OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository)
 
     // Set the location that the End-User's User Agent will be redirected to
     // after the logout has been performed at the Provider

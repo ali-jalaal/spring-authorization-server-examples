@@ -15,8 +15,7 @@ import org.springframework.web.reactive.function.client.WebClient
 class WebClientConfig {
   @Bean
   fun webClient(authorizedClientManager: OAuth2AuthorizedClientManager?): WebClient {
-    val oauth2Client =
-      ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager)
+    val oauth2Client = ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager)
     // @formatter:off
     return WebClient.builder()
       .apply(oauth2Client.oauth2Configuration())
@@ -41,15 +40,12 @@ class WebClientConfig {
 
     // @formatter:on
     val authorizedClientManager = DefaultOAuth2AuthorizedClientManager(
-      clientRegistrationRepository, authorizedClientRepository
-    )
+      clientRegistrationRepository, authorizedClientRepository)
     authorizedClientManager.setAuthorizedClientProvider(authorizedClientProvider)
 
     // Set a contextAttributesMapper to obtain device_code from the request
     authorizedClientManager.setContextAttributesMapper(
-      DeviceCodeOAuth2AuthorizedClientProvider
-        .deviceCodeContextAttributesMapper()
-    )
+      DeviceCodeOAuth2AuthorizedClientProvider.deviceCodeContextAttributesMapper())
 
     return authorizedClientManager
   }

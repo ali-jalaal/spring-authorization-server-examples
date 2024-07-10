@@ -19,7 +19,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 @Controller
 class AuthorizationController(
   private val webClient: WebClient,
-  @param:Value("\${messages.base-uri}") private val messagesBaseUri: String
+  @Value("\${messages.base-uri}") private val messagesBaseUri: String
 ) {
   @GetMapping(value = ["/authorize"], params = ["grant_type=authorization_code"])
   fun authorizationCodeGrant(
