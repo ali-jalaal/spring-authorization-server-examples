@@ -1,5 +1,3 @@
-import org.springframework.boot.gradle.tasks.run.BootRun
-
 plugins {
   kotlin("jvm") version "1.9.24"
   kotlin("plugin.spring") version "1.9.24"
@@ -36,11 +34,5 @@ subprojects {
 
   tasks.withType<Test> {
     useJUnitPlatform()
-  }
-
-  tasks.register("bootLocalRun") {
-    group = "application"
-    dependsOn("bootRun")
-    (tasks["bootRun"] as BootRun).systemProperty("spring.profiles.active", "local")
   }
 }

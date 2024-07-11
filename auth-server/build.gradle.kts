@@ -1,3 +1,5 @@
+import org.springframework.boot.gradle.tasks.run.BootRun
+
 plugins {
   id("org.springframework.boot")
   id("io.spring.dependency-management")
@@ -21,4 +23,11 @@ dependencies {
   testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
   testRuntimeOnly("org.junit.platform:junit-platform-launcher")
   testImplementation("net.sourceforge.htmlunit:htmlunit")
+}
+
+tasks.register("bootLocalRun", BootRun::class) {
+  group = "application"
+  classpath = sourceSets["main"].runtimeClasspath
+  mainClass.set("com.github.alijalaal.authserver.AuthServerApplicationKt")
+  systemProperty("spring.profiles.active", "local")
 }

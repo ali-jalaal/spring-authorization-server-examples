@@ -1,3 +1,5 @@
+import org.springframework.boot.gradle.tasks.run.BootRun
+
 plugins {
   id("org.springframework.boot")
   id("io.spring.dependency-management")
@@ -23,4 +25,11 @@ dependencies {
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
   testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.register("bootLocalRun", BootRun::class) {
+  group = "application"
+  classpath = sourceSets["main"].runtimeClasspath
+  mainClass.set("com.github.alijalaal.client.ClientApplicationKt")
+  systemProperty("spring.profiles.active", "local")
 }
