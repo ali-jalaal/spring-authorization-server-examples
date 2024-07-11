@@ -1,4 +1,4 @@
-package com.github.alijalaal.resourceserver.web
+package com.github.alijalaal.client.web
 
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Value
@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
-
 
 @Controller
 class AuthorizationController(
