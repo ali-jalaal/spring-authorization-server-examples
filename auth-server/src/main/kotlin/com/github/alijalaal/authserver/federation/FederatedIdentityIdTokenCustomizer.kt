@@ -1,5 +1,22 @@
-package com.github.alijalaal.client.federation
+/*
+ * Copyright 2020-2023 the original author or authors.
+ * Modifications copyright (c) 2024 Ali Jalal
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.github.alijalaal.authserver.federation
 
+// tag::imports[]
 import org.springframework.security.core.Authentication
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames
 import org.springframework.security.oauth2.core.oidc.endpoint.OidcParameterNames
@@ -7,11 +24,20 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import org.springframework.security.oauth2.core.user.OAuth2User
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer
-import java.util.Arrays
-import java.util.Collections
+import java.util.*
 import java.util.function.Consumer
+// end::imports[]
 
 
+/**
+ * An {@link OAuth2TokenCustomizer} to map claims from a federated identity to
+ * the {@code id_token} produced by this authorization server.
+ *
+ * @author Steve Riesenberg
+ * @author Ali Jalal
+ * @since 1.1
+ */
+// tag::class[]
 class FederatedIdentityIdTokenCustomizer : OAuth2TokenCustomizer<JwtEncodingContext?> {
   override fun customize(context: JwtEncodingContext?) {
     if (OidcParameterNames.ID_TOKEN == context!!.getTokenType().getValue()) {
@@ -74,3 +100,4 @@ class FederatedIdentityIdTokenCustomizer : OAuth2TokenCustomizer<JwtEncodingCont
     )
   }
 }
+// end::class[]
