@@ -1,10 +1,10 @@
-package com.github.alijalaal.resourceserver
+package com.github.alijalaal.client
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest
-class ResourceServerApplicationTests {
+class ClientApplicationTests {
 
   @Test
   fun contextLoads() {
