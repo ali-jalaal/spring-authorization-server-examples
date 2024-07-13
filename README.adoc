@@ -50,7 +50,7 @@ The *_registrationId_* is a unique identifier for the `ClientRegistration`.
 
 Now that you have a new OAuth Client with Google, you need to configure the application to use the OAuth Client for the _authentication flow_. To do so:
 
-. Go to `application.yml` and set the following configuration:
+. Go to `application.yaml` and set the following configuration:
 +
 [source,yaml]
 ----
@@ -99,7 +99,7 @@ The *_registrationId_* is a unique identifier for the `ClientRegistration`.
 
 Now that you have a new OAuth application with GitHub, you need to configure the application to use the OAuth application for the _authentication flow_. To do so:
 
-. Go to `application.yml` and set the following configuration:
+. Go to `application.yaml` and set the following configuration:
 +
 [source,yaml]
 ----
