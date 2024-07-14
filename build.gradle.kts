@@ -1,8 +1,14 @@
+import org.springframework.boot.gradle.tasks.run.BootRun
+
 plugins {
   kotlin("jvm") version "1.9.24"
   kotlin("plugin.spring") version "1.9.24"
   id("org.springframework.boot") version "3.3.1"
   id("io.spring.dependency-management") version "1.1.5"
+}
+
+ext {
+  set("mainClassName", "")
 }
 
 repositories {
@@ -34,5 +40,13 @@ subprojects {
 
   tasks.withType<Test> {
     useJUnitPlatform()
+  }
+
+  tasks.register("bootLocalRun", BootRun::class) {
+    group = "application"
+    description = "Runs this project as a Spring Boot application using application-local.yaml."
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set(ext["mainClassName"].toString())
+    systemProperty("spring.profiles.active", "local")
   }
 }
