@@ -1,0 +1,34 @@
+services:
+  auth-server:
+    image: auth-server:latest
+    build: ./auth-server
+    ports:
+      - "9000:9000"
+    healthcheck:
+      test: curl --fail http://localhost:9000/actuator/health || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  resource-server:
+    image: resource-server:latest
+    build: ./resource-server
+    ports:
+      - "8090:8090"
+    depends_on:
+      auth-server:
+        condition: service_healthy
+    environment:
+      - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_SPRING_ISSUER_URI=http://auth-server:9000
+
+  client:
+    image: client:latest
+    build: ./client
+    ports:
+      - "8080:8080"
+    depends_on:
+      auth-server:
+        condition: service_healthy
+    environment:
+      - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_SPRING_ISSUER_URI=http://auth-server:9000

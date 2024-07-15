@@ -5,6 +5,7 @@ plugins {
   kotlin("plugin.spring") version "1.9.24"
   id("org.springframework.boot") version "3.3.1"
   id("io.spring.dependency-management") version "1.1.5"
+  id("com.avast.gradle.docker-compose") version "0.17.7"
 }
 
 ext {
@@ -32,6 +33,10 @@ subprojects {
     }
   }
 
+  tasks.getByName<Jar>("jar") { // Disable plain jar (only generate fat jar)
+    enabled = false
+  }
+
   kotlin {
     compilerOptions {
       freeCompilerArgs.addAll("-Xjsr305=strict")
@@ -43,10 +48,30 @@ subprojects {
   }
 
   tasks.register("bootLocalRun", BootRun::class) {
-    group = "application"
+    group = "custom"
     description = "Runs this project as a Spring Boot application using application-local.yaml."
     classpath = sourceSets["main"].runtimeClasspath
     mainClass.set(ext["mainClassName"].toString())
     systemProperty("spring.profiles.active", "local")
   }
+}
+
+dockerCompose {
+  useComposeFiles.add("compose.yaml")
+  useDockerComposeV2 = false
+  forceRecreate = true
+  stopContainers = false
+  captureContainersOutput = true
+}
+
+task("assembleAll") {
+  group = "custom"
+  description = "Assemble all subprojects."
+  dependsOn(subprojects.map { it.tasks.assemble })
+}
+
+task("cleanAll") {
+  group = "custom"
+  description = "Clean all subprojects."
+  dependsOn(subprojects.map { it.tasks.clean })
 }
