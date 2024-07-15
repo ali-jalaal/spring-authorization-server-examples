@@ -78,7 +78,7 @@ class DeviceCodeOAuth2AuthorizedClientProvider : OAuth2AuthorizedClientProvider 
     // *****************************************************************
     val deviceCode = context.getAttribute<String>(OAuth2ParameterNames.DEVICE_CODE)
     // Attempt to authorize the client, which will repeatedly fail until the user grants authorization
-    val deviceGrantRequest: OAuth2DeviceGrantRequest = OAuth2DeviceGrantRequest(clientRegistration, deviceCode)
+    val deviceGrantRequest = OAuth2DeviceGrantRequest(clientRegistration, deviceCode)
     val tokenResponse = getTokenResponse(clientRegistration, deviceGrantRequest)
     return OAuth2AuthorizedClient(
       clientRegistration, context.principal.name,
@@ -105,9 +105,7 @@ class DeviceCodeOAuth2AuthorizedClientProvider : OAuth2AuthorizedClientProvider 
     fun deviceCodeContextAttributesMapper(): Function<OAuth2AuthorizeRequest, Map<String?, Any>> {
       return Function { authorizeRequest: OAuth2AuthorizeRequest ->
         val request =
-          authorizeRequest.getAttribute<HttpServletRequest>(
-            HttpServletRequest::class.java.name
-          )
+          authorizeRequest.getAttribute<HttpServletRequest>(HttpServletRequest::class.java.name)
         Assert.notNull(request, "request cannot be null")
 
         // Obtain device code from request

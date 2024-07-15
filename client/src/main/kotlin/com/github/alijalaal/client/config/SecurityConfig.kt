@@ -50,10 +50,9 @@ class SecurityConfig {
   @Throws(Exception::class)
   fun securityFilterChain(http:HttpSecurity, clientRegistrationRepository:ClientRegistrationRepository): SecurityFilterChain {
     http
-      .authorizeHttpRequests(Customizer {authorize -> authorize
+      .authorizeHttpRequests{authorize -> authorize
         .requestMatchers("/logged-out").permitAll()
         .anyRequest().authenticated()}
-      )
       .oauth2Login{oauth2Login:OAuth2LoginConfigurer<HttpSecurity?> -> oauth2Login.loginPage("/oauth2/authorization/messaging-client-oidc")}
       .oauth2Client(Customizer.withDefaults())
       .logout{logout:LogoutConfigurer<HttpSecurity?> -> logout.logoutSuccessHandler(oidcLogoutSuccessHandler(clientRegistrationRepository))}

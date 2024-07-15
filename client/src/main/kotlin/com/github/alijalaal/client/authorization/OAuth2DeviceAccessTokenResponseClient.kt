@@ -33,7 +33,6 @@ import org.springframework.util.MultiValueMap
 import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestOperations
 import org.springframework.web.client.RestTemplate
-import java.util.*
 
 /**
  * @author Steve Riesenberg
@@ -44,12 +43,7 @@ class OAuth2DeviceAccessTokenResponseClient() : OAuth2AccessTokenResponseClient<
   private var restOperations: RestOperations
 
   init {
-    val restTemplate = RestTemplate(
-      Arrays.asList(
-        FormHttpMessageConverter(),
-        OAuth2AccessTokenResponseHttpMessageConverter()
-      )
-    )
+    val restTemplate = RestTemplate(listOf(FormHttpMessageConverter(), OAuth2AccessTokenResponseHttpMessageConverter()))
     restTemplate.errorHandler = OAuth2ErrorResponseErrorHandler()
     this.restOperations = restTemplate
   }
@@ -59,7 +53,7 @@ class OAuth2DeviceAccessTokenResponseClient() : OAuth2AccessTokenResponseClient<
   }
 
   override fun getTokenResponse(deviceGrantRequest: OAuth2DeviceGrantRequest): OAuth2AccessTokenResponse {
-    val clientRegistration: ClientRegistration = deviceGrantRequest.getClientRegistration()
+    val clientRegistration: ClientRegistration = deviceGrantRequest.clientRegistration
 
     val headers = HttpHeaders()
     /*
@@ -78,7 +72,7 @@ class OAuth2DeviceAccessTokenResponseClient() : OAuth2AccessTokenResponseClient<
     }
 
     val requestParameters: MultiValueMap<String, Any> = LinkedMultiValueMap()
-    requestParameters.add(OAuth2ParameterNames.GRANT_TYPE, deviceGrantRequest.getGrantType().getValue())
+    requestParameters.add(OAuth2ParameterNames.GRANT_TYPE, deviceGrantRequest.grantType.value)
     requestParameters.add(OAuth2ParameterNames.CLIENT_ID, clientRegistration.clientId)
     requestParameters.add(OAuth2ParameterNames.DEVICE_CODE, deviceGrantRequest.deviceCode)
 
@@ -86,14 +80,11 @@ class OAuth2DeviceAccessTokenResponseClient() : OAuth2AccessTokenResponseClient<
     val requestEntity: RequestEntity<MultiValueMap<String, Any>> =
       RequestEntity.post(deviceGrantRequest.getClientRegistration().getProviderDetails().getTokenUri())
         .headers(headers)
-        .body<MultiValueMap<String, Any>>(requestParameters)
+        .body(requestParameters)
 
     // @formatter:on
     try {
-      return restOperations.exchange(
-        requestEntity,
-        OAuth2AccessTokenResponse::class.java
-      ).body!!
+      return restOperations.exchange(requestEntity, OAuth2AccessTokenResponse::class.java).body!!
     } catch (ex: RestClientException) {
       val oauth2Error = OAuth2Error(
         "invalid_token_response",
