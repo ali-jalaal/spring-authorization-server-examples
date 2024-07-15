@@ -26,6 +26,7 @@ import org.springframework.security.oauth2.server.authorization.token.JwtEncodin
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer
 import java.util.*
 import java.util.function.Consumer
+
 // end::imports[]
 
 
@@ -41,13 +42,11 @@ import java.util.function.Consumer
 class FederatedIdentityIdTokenCustomizer : OAuth2TokenCustomizer<JwtEncodingContext?> {
   override fun customize(context: JwtEncodingContext?) {
     if (OidcParameterNames.ID_TOKEN == context!!.getTokenType().getValue()) {
-      val thirdPartyClaims = extractClaims(context!!.getPrincipal<Authentication>())
-      context.getClaims().claims(Consumer { existingClaims: MutableMap<String, Any> ->
+      val thirdPartyClaims = extractClaims(context!!.getPrincipal())
+      context.claims.claims { existingClaims: MutableMap<String, Any> ->
         // Remove conflicting claims set by this authorization server
         existingClaims.keys.forEach(Consumer { key: String ->
-          thirdPartyClaims.remove(
-            key
-          )
+          thirdPartyClaims.remove(key)
         })
 
         // Remove standard id_token claims that could cause problems with clients
@@ -59,21 +58,27 @@ class FederatedIdentityIdTokenCustomizer : OAuth2TokenCustomizer<JwtEncodingCont
 
         // Add all other claims directly to id_token
         existingClaims.putAll(thirdPartyClaims)
-      })
+      }
     }
   }
 
   private fun extractClaims(principal: Authentication): MutableMap<String, Any> {
     val claims: Map<String, Any>
-    if (principal.principal is OidcUser) {
-      val oidcUser = principal.principal as OidcUser
-      val idToken = oidcUser.idToken
-      claims = idToken.claims
-    } else if (principal.principal is OAuth2User) {
-      val oauth2User = principal.principal as OAuth2User
-      claims = oauth2User.attributes
-    } else {
-      claims = emptyMap()
+    when (principal.principal) {
+      is OidcUser -> {
+        val oidcUser = principal.principal as OidcUser
+        val idToken = oidcUser.idToken
+        claims = idToken.claims
+      }
+
+      is OAuth2User -> {
+        val oauth2User = principal.principal as OAuth2User
+        claims = oauth2User.attributes
+      }
+
+      else -> {
+        claims = emptyMap()
+      }
     }
 
     return HashMap(claims)
@@ -82,7 +87,7 @@ class FederatedIdentityIdTokenCustomizer : OAuth2TokenCustomizer<JwtEncodingCont
   companion object {
     private val ID_TOKEN_CLAIMS: Set<String> = Collections.unmodifiableSet(
       HashSet(
-        Arrays.asList(
+        listOf(
           IdTokenClaimNames.ISS,
           IdTokenClaimNames.SUB,
           IdTokenClaimNames.AUD,

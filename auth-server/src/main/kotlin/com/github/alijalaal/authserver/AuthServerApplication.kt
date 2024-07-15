@@ -22,7 +22,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.ImportRuntimeHints
 import org.thymeleaf.expression.Lists
-import java.util.*
 
 /**
  * @author Joe Grandja
@@ -37,7 +36,7 @@ class AuthServerApplication {
     override fun registerHints(hints: RuntimeHints, classLoader: ClassLoader?) {
       // Thymeleaf
       hints.reflection().registerTypes(
-        Arrays.asList<TypeReference>(
+        listOf(
           TypeReference.of(AuthorizationConsentController.ScopeWithDescription::class.java),
           TypeReference.of(Lists::class.java)
         )

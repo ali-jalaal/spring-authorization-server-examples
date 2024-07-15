@@ -230,7 +230,7 @@ class AuthorizationServerConfig {
   }
 
   companion object {
-    val CUSTOM_CONSENT_PAGE_URI: String = "/oauth2/consent"
+    const val CUSTOM_CONSENT_PAGE_URI: String = "/oauth2/consent"
 
     private fun generateRsaKey(): KeyPair {
       val keyPair: KeyPair

@@ -45,21 +45,17 @@ class DeviceClientAuthenticationConverter(deviceAuthorizationEndpointUri: String
   init {
     val clientIdParameterMatcher =
       RequestMatcher { request: HttpServletRequest ->
-        request.getParameter(
-          OAuth2ParameterNames.CLIENT_ID
-        ) != null
+        request.getParameter(OAuth2ParameterNames.CLIENT_ID) != null
       }
     this.deviceAuthorizationRequestMatcher = AndRequestMatcher(
-      AntPathRequestMatcher(
-        deviceAuthorizationEndpointUri, HttpMethod.POST.name()
-      ),
+      AntPathRequestMatcher(deviceAuthorizationEndpointUri, HttpMethod.POST.name()),
       clientIdParameterMatcher
     )
     this.deviceAccessTokenRequestMatcher =
       RequestMatcher { request: HttpServletRequest ->
-        AuthorizationGrantType.DEVICE_CODE.value == request.getParameter(OAuth2ParameterNames.GRANT_TYPE) && request.getParameter(
-          OAuth2ParameterNames.DEVICE_CODE
-        ) != null && request.getParameter(OAuth2ParameterNames.CLIENT_ID) != null
+        AuthorizationGrantType.DEVICE_CODE.value == request.getParameter(OAuth2ParameterNames.GRANT_TYPE)
+            && request.getParameter(OAuth2ParameterNames.DEVICE_CODE) != null
+            && request.getParameter(OAuth2ParameterNames.CLIENT_ID) != null
       }
   }
 
