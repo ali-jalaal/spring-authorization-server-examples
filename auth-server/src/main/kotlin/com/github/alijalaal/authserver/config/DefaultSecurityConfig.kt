@@ -44,10 +44,12 @@ import org.springframework.security.web.session.HttpSessionEventPublisher
 class DefaultSecurityConfig {
   // @formatter:off
   @Order(2)
-  @Bean @Throws(Exception::class) fun defaultSecurityFilterChain(http:HttpSecurity): SecurityFilterChain {
+  @Bean
+  @Throws(Exception::class)
+  fun defaultSecurityFilterChain(http:HttpSecurity): SecurityFilterChain {
     http
       .authorizeHttpRequests{authorize -> authorize
-        .requestMatchers("/assets/**", "/login").permitAll()
+        .requestMatchers("/assets/**", "/login", "/actuator/health").permitAll()
         .anyRequest().authenticated()}
       .formLogin{formLogin:FormLoginConfigurer<HttpSecurity?> -> formLogin
         .loginPage("/login")}
@@ -73,8 +75,8 @@ class DefaultSecurityConfig {
       .build()
     return InMemoryUserDetailsManager(user)
   }
-
   // @formatter:on
+
   @Bean
   fun sessionRegistry(): SessionRegistry {
     return SessionRegistryImpl()

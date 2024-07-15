@@ -15,6 +15,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
   implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
   implementation("org.springframework.boot:spring-boot-starter-jdbc")
+  implementation("org.springframework.boot:spring-boot-starter-actuator")
   runtimeOnly("com.h2database:h2")
 
   compileOnly("org.springframework.boot:spring-boot-devtools")
