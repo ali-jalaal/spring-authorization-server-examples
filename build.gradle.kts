@@ -58,9 +58,8 @@ subprojects {
 
 dockerCompose {
   useComposeFiles.add("compose.yaml")
-  useDockerComposeV2 = false
   forceRecreate = true
-  stopContainers = false
+  stopContainers = true
   captureContainersOutput = true
 }
 

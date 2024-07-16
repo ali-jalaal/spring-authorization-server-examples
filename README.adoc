@@ -5,12 +5,22 @@ This projects provides custom configuration for various features implemented by 
 
 [[run-examples]]
 === Run Examples
+Modules can be run in two ways:
 
+1. Locally:
 * Run Authorization Server -> `./gradlew -b auth-server/build.gradle.kts bootLocalRun`
 * Run Client -> `./gradlew -b client/build.gradle.kts bootLocalRun`
 * Run Resource Server -> `./gradlew -b resource-server/build.gradle.kts bootLocalRun`
+
+2. Docker Compose (Needs docker-compose be installed locally):
+* Assemble modules (build without running tests) -> `./gradlew assembleAll`
+* Run docker compose: `./gradlew composeUp`
+* To stop docker compose containers: `./gradlew composeDownForced`
+Please note that
+When modules are running either way:
+
 * Go to `http://127.0.0.1:8080`
-** Login with credentials -> user1 \ password
+* Login with credentials -> user1 \ password
 
 [[configuring-social-login]]
 === Configuring Social Login
