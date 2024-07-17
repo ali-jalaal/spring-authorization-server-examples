@@ -1,8 +1,10 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.springframework.boot.gradle.tasks.run.BootRun
 
 plugins {
-  kotlin("jvm") version "1.9.24"
-  kotlin("plugin.spring") version "1.9.24"
+  kotlin("jvm") version "2.0.0"
+  kotlin("plugin.spring") version "2.0.0"
   id("org.springframework.boot") version "3.3.1"
   id("io.spring.dependency-management") version "1.1.5"
   id("com.avast.gradle.docker-compose") version "0.17.7"
@@ -27,9 +29,15 @@ subprojects {
     mavenCentral()
   }
 
-  java {
-    toolchain {
-      languageVersion = JavaLanguageVersion.of(17)
+  dependencies {
+    testImplementation(kotlin("test"))
+  }
+
+  kotlin {
+    compilerOptions {
+      languageVersion.set(KotlinVersion.KOTLIN_2_0)
+      apiVersion.set(KotlinVersion.KOTLIN_2_0)
+      jvmTarget.set(JvmTarget.JVM_17)
     }
   }
 
