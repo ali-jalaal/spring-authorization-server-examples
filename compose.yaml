@@ -20,7 +20,7 @@ services:
       auth-server:
         condition: service_healthy
     environment:
-      - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_SPRING_ISSUER_URI=http://auth-server:9000
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://auth-server:9000
 
   client:
     image: client:latest
@@ -32,3 +32,4 @@ services:
         condition: service_healthy
     environment:
       - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_SPRING_ISSUER_URI=http://auth-server:9000
+      - MESSAGES_BASE_URI=http://resource-server:8090/messages

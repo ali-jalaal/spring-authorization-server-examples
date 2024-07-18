@@ -5,9 +5,6 @@ spring:
   application:
     name: auth-server
   security:
-    user:
-      name: user
-      password: password
     oauth2:
       authorizationserver:
         client:
