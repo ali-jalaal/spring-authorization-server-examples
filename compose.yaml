@@ -2,6 +2,7 @@ services:
   auth-server:
     image: auth-server:latest
     build: ./auth-server
+    container_name: auth-server
     ports:
       - "9000:9000"
     healthcheck:
@@ -14,6 +15,7 @@ services:
   resource-server:
     image: resource-server:latest
     build: ./resource-server
+    container_name: resource-server
     ports:
       - "8090:8090"
     depends_on:
@@ -25,6 +27,7 @@ services:
   client:
     image: client:latest
     build: ./client
+    container_name: client
     ports:
       - "8080:8080"
     depends_on:
