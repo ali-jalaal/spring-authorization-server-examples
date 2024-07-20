@@ -38,17 +38,12 @@ subprojects {
       languageVersion.set(KotlinVersion.KOTLIN_2_0)
       apiVersion.set(KotlinVersion.KOTLIN_2_0)
       jvmTarget.set(JvmTarget.JVM_17)
+      freeCompilerArgs.addAll("-Xjsr305=strict")
     }
   }
 
   tasks.getByName<Jar>("jar") { // Disable plain jar (only generate fat jar)
     enabled = false
-  }
-
-  kotlin {
-    compilerOptions {
-      freeCompilerArgs.addAll("-Xjsr305=strict")
-    }
   }
 
   tasks.withType<Test> {
