@@ -1,11 +1,13 @@
-# Containers are accessible by their names and therefore URLs in resource-server and client containers are changed:
+# All containers are accessible via localhost:
 services:
   auth-server:
     image: auth-server:latest
     build: ./auth-server
     container_name: auth-server
-    ports:
+    ports: # All container ports are defined here:
       - "9000:9000"
+      - "8090:8090"
+      - "8080:8080"
     healthcheck:
       test: curl --fail http://localhost:9000/actuator/health || exit 1
       interval: 5s
@@ -17,23 +19,16 @@ services:
     image: resource-server:latest
     build: ./resource-server
     container_name: resource-server
-    ports:
-      - "8090:8090"
+    network_mode: "service:auth-server" # No port is defined and this container is attached to auth-server network as localhost.
     depends_on:
       auth-server:
         condition: service_healthy
-    environment:
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://auth-server:9000
 
   client:
     image: client:latest
     build: ./client
     container_name: client
-    ports:
-      - "8080:8080"
+    network_mode: "service:auth-server" # No port is defined and this container is attached to auth-server network as localhost.
     depends_on:
       auth-server:
         condition: service_healthy
-    environment:
-      - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_SPRING_ISSUER_URI=http://auth-server:9000
-      - MESSAGES_BASE_URI=http://resource-server:8090/messages
